@@ -1,2 +1,2 @@
-# rust-playground
-Rust playground
+# rust-sandbox
+Small utilities, snippets for trying out Rust
