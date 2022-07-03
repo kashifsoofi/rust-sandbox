@@ -4,7 +4,7 @@ use std::io::Write;
 use clap::Parser;
 use csv;
 
-use tokio::{self, task, time};
+use tokio::{self, time};
 use tokio::sync::mpsc;
 use tokio::time::Duration;
 
@@ -66,8 +66,8 @@ async fn main() {
     let (tx, mut rx) = mpsc::channel::<i32>(1);
     let (tx2, mut rx2) = mpsc::channel(1);
 
-    task::spawn(quiz(problems, tx));
-    task::spawn(wait(args.time_limit, tx2));
+    let t = tokio::spawn(quiz(problems, tx));
+    tokio::spawn(wait(args.time_limit, tx2));
 
     let mut correct = 0;
     let mut count = 0;
@@ -81,10 +81,12 @@ async fn main() {
                 }
             }
             _ = rx2.recv() => {
+                t.abort();
                 break;
             }
         }
     }
     
-    println!("You have scored {} out of {}.", correct, total_problems)
+    println!("You have scored {} out of {}.", correct, total_problems);
+    std::process::exit(1)
 }
